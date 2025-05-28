@@ -3,6 +3,7 @@ import sqlite3
 from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
 import cloudinary
+import cloudinary.api
 import cloudinary.uploader
 import os
 from dotenv import load_dotenv
