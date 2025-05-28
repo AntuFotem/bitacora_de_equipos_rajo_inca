@@ -2,11 +2,25 @@ from flask import Flask, render_template, request, redirect, session, url_for, f
 import sqlite3
 from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
+import cloudinary
+import cloudinary.uploader
 import os
+from dotenv import load_dotenv
+
+# Cargar variables de entorno
+load_dotenv()
+
+# Configuración de Cloudinary
+cloudinary.config(
+    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.getenv('CLOUDINARY_API_KEY'),
+    api_secret=os.getenv('CLOUDINARY_API_SECRET')
+)
 
 app = Flask(__name__)
 app.secret_key = 'clave_super_segura_123'
 DATABASE = 'catastro_caex.db'
+
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
@@ -62,14 +76,13 @@ def ver_regletas(id_caex):
     regletas = []
     for i in range(1, 36):
         nombre = f'TB{i}'
-        ruta_img = f'static/regletas/caex{id_caex}/tb{i}.jpg'
-        ruta_txt = f'data/regletas/caex{id_caex}/tb{i}.txt'
-        imagen = f'/static/regletas/caex{id_caex}/tb{i}.jpg' if os.path.exists(ruta_img) else None
-        detalle = ''
-        if os.path.exists(ruta_txt):
-            with open(ruta_txt, 'r', encoding='utf-8') as f:
-                detalle = f.read()
-        regletas.append({'id': i, 'nombre': nombre, 'imagen': imagen, 'detalle': detalle})
+        public_id = f'regletas/caex{id_caex}/tb{i}'
+        imagen_url = cloudinary.CloudinaryImage(public_id).build_url() if cloudinary.api.resource(public_id, ignore_error=True) else None
+        detalle = None
+        if imagen_url:
+            recurso = cloudinary.api.resource(public_id, context=True, ignore_error=True)
+            detalle = recurso.get('context', {}).get('custom', {}).get('detalle')
+        regletas.append({'id': i, 'nombre': nombre, 'imagen': imagen_url, 'detalle': detalle})
 
     return render_template('regletas.html', id_caex=id_caex, regletas=regletas)
 
@@ -79,10 +92,10 @@ def subir_imagen_regleta(id_caex, tb_id):
         return redirect(url_for('index'))
 
     archivo = request.files.get('nueva_imagen')
+    detalle = request.form.get('detalle', '')
     if archivo:
-        ruta = f"static/regletas/caex{id_caex}"
-        os.makedirs(ruta, exist_ok=True)
-        archivo.save(os.path.join(ruta, f"tb{tb_id}.jpg"))
+        public_id = f'regletas/caex{id_caex}/tb{tb_id}'
+        cloudinary.uploader.upload(archivo, public_id=public_id, overwrite=True, context={"detalle": detalle})
 
     return redirect(url_for('ver_regletas', id_caex=id_caex))
 
@@ -91,22 +104,8 @@ def borrar_imagen_regleta(id_caex, tb_id):
     if 'usuario' not in session:
         return redirect(url_for('index'))
 
-    ruta = f"static/regletas/caex{id_caex}/tb{tb_id}.jpg"
-    if os.path.exists(ruta):
-        os.remove(ruta)
-
-    return redirect(url_for('ver_regletas', id_caex=id_caex))
-
-@app.route('/caex/<int:id_caex>/regletas/<int:tb_id>/guardar_detalle', methods=['POST'])
-def guardar_detalle_regleta(id_caex, tb_id):
-    if 'usuario' not in session:
-        return redirect(url_for('index'))
-
-    detalle = request.form.get('detalle', '')
-    ruta = f"data/regletas/caex{id_caex}"
-    os.makedirs(ruta, exist_ok=True)
-    with open(os.path.join(ruta, f"tb{tb_id}.txt"), "w", encoding='utf-8') as f:
-        f.write(detalle)
+    public_id = f'regletas/caex{id_caex}/tb{tb_id}'
+    cloudinary.uploader.destroy(public_id)
 
     return redirect(url_for('ver_regletas', id_caex=id_caex))
 
@@ -126,14 +125,13 @@ def ver_tarjetas(id_caex):
     nombres[10] = 'TCI CPU'
 
     for idx, nombre in enumerate(nombres, start=1):
-        archivo_img = f'static/tarjetas/caex{id_caex}/tarjeta{idx}.jpg'
-        archivo_txt = f'data/tarjetas/caex{id_caex}/tarjeta{idx}.txt'
-        imagen = f'/static/tarjetas/caex{id_caex}/tarjeta{idx}.jpg' if os.path.exists(archivo_img) else None
-        detalle = ''
-        if os.path.exists(archivo_txt):
-            with open(archivo_txt, 'r', encoding='utf-8') as f:
-                detalle = f.read()
-        tarjetas.append({'id': idx, 'nombre': nombre, 'imagen': imagen, 'detalle': detalle})
+        public_id = f'tarjetas/caex{id_caex}/tarjeta{idx}'
+        imagen_url = cloudinary.CloudinaryImage(public_id).build_url() if cloudinary.api.resource(public_id, ignore_error=True) else None
+        detalle = None
+        if imagen_url:
+            recurso = cloudinary.api.resource(public_id, context=True, ignore_error=True)
+            detalle = recurso.get('context', {}).get('custom', {}).get('detalle')
+        tarjetas.append({'id': idx, 'nombre': nombre, 'imagen': imagen_url, 'detalle': detalle})
 
     return render_template('tarjetas.html', id_caex=id_caex, tarjetas=tarjetas)
 
@@ -143,10 +141,10 @@ def subir_imagen_tarjeta(id_caex, tarjeta_id):
         return redirect(url_for('index'))
 
     archivo = request.files.get('nueva_imagen')
+    detalle = request.form.get('detalle', '')
     if archivo:
-        ruta = f"static/tarjetas/caex{id_caex}"
-        os.makedirs(ruta, exist_ok=True)
-        archivo.save(os.path.join(ruta, f"tarjeta{tarjeta_id}.jpg"))
+        public_id = f'tarjetas/caex{id_caex}/tarjeta{tarjeta_id}'
+        cloudinary.uploader.upload(archivo, public_id=public_id, overwrite=True, context={"detalle": detalle})
 
     return redirect(url_for('ver_tarjetas', id_caex=id_caex))
 
@@ -155,22 +153,8 @@ def borrar_imagen_tarjeta(id_caex, tarjeta_id):
     if 'usuario' not in session:
         return redirect(url_for('index'))
 
-    ruta = f"static/tarjetas/caex{id_caex}/tarjeta{tarjeta_id}.jpg"
-    if os.path.exists(ruta):
-        os.remove(ruta)
-
-    return redirect(url_for('ver_tarjetas', id_caex=id_caex))
-
-@app.route('/caex/<int:id_caex>/tarjetas/<int:tarjeta_id>/guardar_detalle', methods=['POST'])
-def guardar_detalle_tarjeta(id_caex, tarjeta_id):
-    if 'usuario' not in session:
-        return redirect(url_for('index'))
-
-    detalle = request.form.get('detalle', '')
-    ruta = f"data/tarjetas/caex{id_caex}"
-    os.makedirs(ruta, exist_ok=True)
-    with open(os.path.join(ruta, f"tarjeta{tarjeta_id}.txt"), "w", encoding='utf-8') as f:
-        f.write(detalle)
+    public_id = f'tarjetas/caex{id_caex}/tarjeta{tarjeta_id}'
+    cloudinary.uploader.destroy(public_id)
 
     return redirect(url_for('ver_tarjetas', id_caex=id_caex))
 
@@ -183,3 +167,4 @@ if __name__ == '__main__':
     if not os.path.exists(DATABASE):
         print("⚠️ No se encontró la base de datos.")
     app.run(debug=True)
+
