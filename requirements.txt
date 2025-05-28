@@ -2,3 +2,4 @@ flask
 werkzeug
 gunicorn
 cloudinary
+python-dotenv
