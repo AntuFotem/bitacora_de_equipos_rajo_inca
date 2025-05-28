@@ -3,3 +3,5 @@ werkzeug
 gunicorn
 cloudinary
 python-dotenv
+cloudinary>=1.44.0
+
