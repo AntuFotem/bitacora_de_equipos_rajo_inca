@@ -1,0 +1,27 @@
+# Ignora archivos compilados de Python
+__pycache__/
+*.py[cod]
+
+# Ignora archivos de bases de datos locales
+*.db
+
+# Ignora variables de entorno
+.env
+
+# Ignora archivos de logs
+*.log
+
+# Ignora archivos temporales de sistema
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Ignora backups o zips
+*.bak
+*.zip
+
+# Ignora carpetas ocultas y de entorno virtual
+.venv/
+env/
+venv/
