@@ -40,15 +40,17 @@
     <h2 class="text-center mb-4">Camiones CAEX</h2>
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
       {% for i in range(101, 125) %}
-      <div class="col">
-        <div class="card card-caex">
-          <img src="/static/imagenes/caex/caex{{ i }}.jpg" alt="CAEX {{ i }}">
-          <div class="card-body text-center">
-            <h5 class="card-title">CAEX-{{ i }}</h5>
-            <a href="/caex/{{ i }}" class="btn btn-primary btn-sm">Ingresar</a>
+        {% if i != 117 and i != 120 %}
+        <div class="col">
+          <div class="card card-caex">
+            <img src="/static/imagenes/caex/caex{{ i }}.jpg" alt="CAEX {{ i }}">
+            <div class="card-body text-center">
+              <h5 class="card-title">CAEX-{{ i }}</h5>
+              <a href="/caex/{{ i }}" class="btn btn-primary btn-sm">Ingresar</a>
+            </div>
           </div>
         </div>
-      </div>
+        {% endif %}
       {% endfor %}
     </div>
   </div>
