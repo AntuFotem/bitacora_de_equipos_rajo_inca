@@ -1,27 +1,28 @@
-# Ignora archivos compilados de Python
+# Entornos virtuales
+venv/
+.venv/
+
+# Archivos Python compilados
 __pycache__/
 *.py[cod]
+*.so
 
-# Ignora archivos de bases de datos locales
-*.db
-
-# Ignora variables de entorno
+# Archivos de entorno / variables sensibles
 .env
 
-# Ignora archivos de logs
-*.log
+# Archivos de subida (si usas almacenamiento local, pero no si subes a Cloudinary)
+static/uploads/
 
-# Ignora archivos temporales de sistema
-*.swp
-*.swo
+# Archivos de bases de datos locales (si existieran)
+*.sqlite3
+*.db
+
+# Archivos temporales del sistema
 .DS_Store
 Thumbs.db
 
-# Ignora backups o zips
-*.bak
-*.zip
-
-# Ignora carpetas ocultas y de entorno virtual
-.venv/
-env/
-venv/
+# Archivos de configuración de editor
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
