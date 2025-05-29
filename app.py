@@ -3,8 +3,8 @@ import sqlite3
 from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
 import cloudinary
-import cloudinary.api
 import cloudinary.uploader
+import cloudinary.api  # ← CORRECCIÓN IMPORTANTE
 import os
 from dotenv import load_dotenv
 
@@ -21,7 +21,6 @@ cloudinary.config(
 app = Flask(__name__)
 app.secret_key = 'clave_super_segura_123'
 DATABASE = 'catastro_caex.db'
-
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
@@ -168,4 +167,3 @@ if __name__ == '__main__':
     if not os.path.exists(DATABASE):
         print("⚠️ No se encontró la base de datos.")
     app.run(debug=True)
-
