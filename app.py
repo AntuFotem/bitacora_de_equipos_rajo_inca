@@ -4,7 +4,7 @@ from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
 import cloudinary
 import cloudinary.uploader
-import cloudinary.api  # ← CORRECCIÓN IMPORTANTE
+import cloudinary.api
 import os
 from dotenv import load_dotenv
 
@@ -21,6 +21,7 @@ cloudinary.config(
 app = Flask(__name__)
 app.secret_key = 'clave_super_segura_123'
 DATABASE = 'catastro_caex.db'
+
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
@@ -77,11 +78,14 @@ def ver_regletas(id_caex):
     for i in range(1, 36):
         nombre = f'TB{i}'
         public_id = f'regletas/caex{id_caex}/tb{i}'
-        imagen_url = cloudinary.CloudinaryImage(public_id).build_url() if cloudinary.api.resource(public_id, ignore_error=True) else None
+        imagen_url = None
         detalle = None
-        if imagen_url:
-            recurso = cloudinary.api.resource(public_id, context=True, ignore_error=True)
+        try:
+            recurso = cloudinary.api.resource(public_id, context=True)
+            imagen_url = recurso.get('secure_url')
             detalle = recurso.get('context', {}).get('custom', {}).get('detalle')
+        except cloudinary.exceptions.NotFound:
+            pass
         regletas.append({'id': i, 'nombre': nombre, 'imagen': imagen_url, 'detalle': detalle})
 
     return render_template('regletas.html', id_caex=id_caex, regletas=regletas)
@@ -126,11 +130,14 @@ def ver_tarjetas(id_caex):
 
     for idx, nombre in enumerate(nombres, start=1):
         public_id = f'tarjetas/caex{id_caex}/tarjeta{idx}'
-        imagen_url = cloudinary.CloudinaryImage(public_id).build_url() if cloudinary.api.resource(public_id, ignore_error=True) else None
+        imagen_url = None
         detalle = None
-        if imagen_url:
-            recurso = cloudinary.api.resource(public_id, context=True, ignore_error=True)
+        try:
+            recurso = cloudinary.api.resource(public_id, context=True)
+            imagen_url = recurso.get('secure_url')
             detalle = recurso.get('context', {}).get('custom', {}).get('detalle')
+        except cloudinary.exceptions.NotFound:
+            pass
         tarjetas.append({'id': idx, 'nombre': nombre, 'imagen': imagen_url, 'detalle': detalle})
 
     return render_template('tarjetas.html', id_caex=id_caex, tarjetas=tarjetas)
